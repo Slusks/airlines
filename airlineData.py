@@ -1,8 +1,11 @@
 from pathlib import Path #https://medium.com/@ageitgey/python-3-quick-tip-the-easy-way-to-deal-with-file-paths-on-windows-mac-and-linux-11a072b58d5f
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
+import zipfile
+import os
+import time
 
-import downloadhandle
+
 
 
 
@@ -13,12 +16,10 @@ import downloadhandle
 
 
 # Start Parameters
-years = [2016, 2017, 2018, 2019, 2020]
-month_names = ["January","February","March","April","May","June","July","August","September","October","November","December"]
-month_values = [1,2,3,4,5,6,7,8,9,10,11,12]
-destinationFolder = Path(r"C:/Users/sam/Documents/My Tableau Repository/Datasources/Airlines/carrierReporting")
-#URL = "https://www.transtats.bts.gov/tables.asp?Table_ID=236&SYS_Table_Name=T_ONTIME_REPORTING" 
-#URL="https://www.transtats.bts.gov/DL_SelectFields.asp"
+years = [2016] #[2016, 2017, 2018, 2019, 2020]
+month_names = ["January","February","March"] #,"April","May","June","July","August","September","October","November","December"]
+destinationFolder = Path(r"C:/Users/sam/Documents/My Tableau Repository/Datasources/Airlines/carrierReporting") #this will be used in later production
+
 
 
 #prelaunch chrome IAW prior to running this program: https://cosmocode.io/how-to-connect-selenium-to-an-existing-browser-that-was-opened-manually/
@@ -54,19 +55,19 @@ def checkboxes():
 #Selecting the time period from the dropdown
 def select_time(year, month):
     #select the year, iterate over years
-    year_selector = driver.find_element_by_name('XYEAR')
-    for option in year_selector.find_elements_by_link_text(str(year)):
+    year_selector = driver.find_element_by_id('XYEAR')
+    #print("year_selector", year_selector)
+    for option in year_selector.find_elements_by_tag_name('option'):
+        #print("option:", option)
         if option.text == str(year):
             option.click()
             print("Year:", year)
-            break
     # select the month, iterate over month_names for now. Should be noted each month corresponds to a numeric value
     month_selector = driver.find_element_by_name('FREQUENCY')
-    for option in month_selector.find_elements_by_link_text(month):
+    for option in month_selector.find_elements_by_tag_name('option'):
         if option.text == month:
             option.click()# this is going to have to be sent an element of an iterable and also I hope click works here
             print("Month:", month)
-            break
 
 def downloadDatabase():
         #Download selection
@@ -74,7 +75,27 @@ def downloadDatabase():
         submit_button = driver.find_element_by_xpath("//*[@id='content']/table[1]/tbody/tr/td[2]/table[3]/tbody/tr/td[2]/button[1]")
         submit_button.click()
 
-downloadhandle
+def checkFileDownloaded(passedDirectory):
+    print("waiting for download")
+    directory = passedDirectory
+    for filename in os.listdir(directory):
+        if filename.endswith(".crdownload"):
+            #need to have a thing here
+
+
+def unzipFiles(passedDirectory):
+    print("unzipping files")
+    directory = passedDirectory
+    print("directory", directory)
+    for filename in os.listdir(directory):
+        print("filename", filename)
+        if filename.endswith(".zip"):
+            with zipfile.ZipFile(filename, "r") as zip_ref:
+                zip_ref.extractall
+
+
+#Running the Scripts:
+
 checkboxes()
 for year in years:
     for month in month_names:
@@ -82,13 +103,24 @@ for year in years:
             print ("downloaded all available databases")
             break
         else:
-            print (month,' ',year)
             select_time(year, month)
-            #downloadDatabase()
+            downloadDatabase()
+            time.sleep(10)
+time.sleep(120)
+print("waited 2 minutes")
+unzipFiles(r"C:\airlineData")
+
+
+
+
 
 #References
 '''
- https://cosmocode.io/how-to-connect-selenium-to-an-existing-browser-that-was-opened-manually/
- https://sqa.stackexchange.com/questions/1355/what-is-the-correct-way-to-select-an-option-using-seleniums-python-webdriver
+https://www.transtats.bts.gov/tables.asp?Table_ID=236&SYS_Table_Name=T_ONTIME_REPORTING
+https://www.transtats.bts.gov/DL_SelectFields.asp
+https://cosmocode.io/how-to-connect-selenium-to-an-existing-browser-that-was-opened-manually/
+https://sqa.stackexchange.com/questions/1355/what-is-the-correct-way-to-select-an-option-using-seleniums-python-webdriver
 #checking all the checkboxes https://sqa.stackexchange.com/questions/3292/how-to-select-or-check-multiple-checkboxes-in-selenium
+https://stackoverflow.com/questions/34338897/python-selenium-find-out-when-a-download-has-completed
+https://stackoverflow.com/questions/48263317/selenium-python-waiting-for-a-download-process-to-complete-using-chrome-web
 '''
