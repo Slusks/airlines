@@ -4,14 +4,7 @@ from selenium.webdriver.chrome.options import Options
 import zipfile
 import os
 import time
-
-
-
-
-
-
-
-
+import glob
 
 
 
@@ -28,7 +21,7 @@ destinationFolder = Path(r"C:/Users/sam/Documents/My Tableau Repository/Datasour
 chrome_options = Options()
 chrome_options.add_experimental_option("debuggerAddress", "127.0.0.1:9222")
 #change chrome driver path
-chrome_driver = "C:/Python37/chromedriver.exe"
+chrome_driver = "C:/Python37/chromedriver.exe" #this has to be accomplished on whatever computer this is run on or the path has to change
 driver = webdriver.Chrome(chrome_driver, chrome_options=chrome_options)
 print (driver.title)
 
@@ -77,14 +70,13 @@ def downloadDatabase():
         submit_button.click()
 
 def checkFileDownloaded(passedDirectory):
-    print("waiting for download")
+    print("checking downloads")
     directory = passedDirectory
-    for filename in os.listdir(directory):
-        if filename.endswith(".crdownload"):
-            #need to have a thing here
-            print("something")
-        else:
-            break
+    while len(glob.glob(directory,'/*.crdownload')) > 0:
+        print ("download in progress")
+        time.sleep(5)
+        pass
+
 
 def unzipFiles(passedDirectory):
     print("unzipping files")
