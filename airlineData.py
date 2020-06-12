@@ -4,14 +4,7 @@ from selenium.webdriver.chrome.options import Options
 import zipfile
 import os
 import time
-
-
-
-
-
-
-
-
+import glob
 
 
 
@@ -24,10 +17,11 @@ destinationFolder = Path(r"C:/Users/sam/Documents/My Tableau Repository/Datasour
 
 #prelaunch chrome IAW prior to running this program: https://cosmocode.io/how-to-connect-selenium-to-an-existing-browser-that-was-opened-manually/
 # first use this to launch browser with debugging flags: chrome.exe --remote-debugging-port=9222 --user-data-dir="C:\selenum\ChromeProfile"
+# On work computer and/or if having issues adding chrome.exe to path, can also use 'start chrome' and then the above tags
 chrome_options = Options()
 chrome_options.add_experimental_option("debuggerAddress", "127.0.0.1:9222")
 #change chrome driver path
-chrome_driver = "C:/Python37/chromedriver.exe"
+chrome_driver = "C:/Python37/chromedriver.exe" #this has to be accomplished on whatever computer this is run on or the path has to change
 driver = webdriver.Chrome(chrome_driver, chrome_options=chrome_options)
 print (driver.title)
 
@@ -76,11 +70,12 @@ def downloadDatabase():
         submit_button.click()
 
 def checkFileDownloaded(passedDirectory):
-    print("waiting for download")
+    print("checking downloads")
     directory = passedDirectory
-    for filename in os.listdir(directory):
-        if filename.endswith(".crdownload"):
-            #need to have a thing here
+    while len(glob.glob(directory,'/*.crdownload')) > 0:
+        print ("download in progress")
+        time.sleep(5)
+        pass
 
 
 def unzipFiles(passedDirectory):
