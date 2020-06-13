@@ -23,6 +23,7 @@ chrome_options.add_experimental_option("debuggerAddress", "127.0.0.1:9222")
 #change chrome driver path
 chrome_driver = "C:/Python37/chromedriver.exe" #this has to be accomplished on whatever computer this is run on or the path has to change
 driver = webdriver.Chrome(chrome_driver, chrome_options=chrome_options)
+mainDirectory = "C:\\airlineData\\"
 print (driver.title)
 
 
@@ -72,10 +73,12 @@ def downloadDatabase():
 def checkFileDownloaded(passedDirectory):
     print("checking downloads")
     directory = passedDirectory
-    while len(glob.glob(directory,'/*.crdownload')) > 0:
+    while len(glob.glob(directory+'/*.crdownload')) > 0:
         print ("download in progress")
         time.sleep(5)
-        pass
+        continue #Not sure if this needs to be a pass or a continue
+    if len(glob.glob(directory+'/*.crdownload')) == 0:
+        return True
 
 
 def unzipFiles(passedDirectory):
@@ -83,15 +86,17 @@ def unzipFiles(passedDirectory):
     directory = passedDirectory
     print("directory", directory)
     for filename in os.listdir(directory):
-        print("filename", filename)
+        print("filename:", filename)
         if filename.endswith(".zip"):
-            with zipfile.ZipFile(filename, "r") as zip_ref:
-                zip_ref.extractall
+            with zipfile.ZipFile(directory+'\\'+filename, "r") as zip_ref:
+                zip_ref.extractall(directory + '\\unzipped')
 
 
 #Running the Scripts:
 
-checkboxes()
+#checkboxes()
+completed = (len(years)*len(month_names))
+print(completed)
 for year in years:
     for month in month_names:
         if month == "April" and year == 2020:
@@ -100,9 +105,14 @@ for year in years:
         else:
             select_time(year, month)
             downloadDatabase()
-            time.sleep(10)
-time.sleep(120)
-print("waited 2 minutes")
+            while True:
+                if checkFileDownloaded(r"C:\airlineData") == True:
+                    break
+                else:
+                    continue
+#file_num = len(glob.glob(r"C:\airlineData\*.zip"))
+#print(file_num)
+#if file_num == completed + 1:
 unzipFiles(r"C:\airlineData")
 
 
