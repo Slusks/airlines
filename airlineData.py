@@ -1,4 +1,5 @@
 from pathlib import Path #https://medium.com/@ageitgey/python-3-quick-tip-the-easy-way-to-deal-with-file-paths-on-windows-mac-and-linux-11a072b58d5f
+import pathlib
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 import zipfile
@@ -6,6 +7,7 @@ import os
 import time
 import glob
 import pandas as pd
+import shutil
 
 
 
@@ -24,8 +26,11 @@ chrome_options.add_experimental_option("debuggerAddress", "127.0.0.1:9222")
 #change chrome driver path
 chrome_driver = "C:/Python37/chromedriver.exe" #this has to be accomplished on whatever computer this is run on or the path has to change
 driver = webdriver.Chrome(chrome_driver, chrome_options=chrome_options)
-mainDirectory = "C:\\airlineData\\"
-print (driver.title)
+
+
+###
+mainDirectory = Path(r"C:/airlineData/")
+###
 
 
 #checking all the checkboxes
@@ -73,33 +78,39 @@ def downloadDatabase():
 
 def checkFileDownloaded(passedDirectory):
     print("checking downloads")
-    directory = passedDirectory
-    while len(glob.glob(directory+'/*.crdownload')) > 0:
+    time.sleep(10)
+    while len(list(passedDirectory.glob('*.crdownload'))) > 0:
         print ("download in progress")
         time.sleep(5)
-        continue #Not sure if this needs to be a pass or a continue
-    if len(glob.glob(directory+'/*.crdownload')) == 0 and len(glob.glob(directory+'/*.zip')) >= 0:
+    if len(list(passedDirectory.glob('*.crdownload'))) == 0 and len(list(passedDirectory.glob('*.zip'))) >= 0:
         return True
 
 
-def unzipFiles(passedDirectory, file, count):
+def unzipFiles(passedDirectory, file):
     print("unzipping files")
-    with zipfile.ZipFile(passedDirectory + file, "r") as zip_ref:
-        zip_ref.extractall(passedDirectory +'unzipped')
-        new_filename = file[:-8]+'.csv'
-        if new_filename in os.listdir(passedDirectory+'unzipped'):
-            os.rename(passedDirectory+'unzipped\\'+new_filename, passedDirectory+'unzipped\\'+"database_"+str(count)+'.csv')
-            return
-        else:
-            pass
+    with zipfile.ZipFile(passedDirectory/file, "r") as zip_ref:
+        zip_ref.extractall(passedDirectory/'unzipped')
 
-                
+##This function is supposed to rename the file because all the unzipped files will have the same name. Might want to switch this to a watchdog function.
+## Maybe I need an intermediate directory
+def changeFile(passedDirectory, filename, count):
+    print("changing file")
+    unzippedDirectory = passedDirectory/'unzipped'
+    finalDirectory = passedDirectory/'renamed'
+    if len(filename) == 32:
+        base_filename = filename[:-4]+'.csv'
+    else:
+        base_filename = filename[:-8]+'.csv'
+    new_filename = "database_"+str(count)+'.csv'
+    print("new File name:", new_filename)
+
+    shutil.move(unzippedDirectory / base_filename, finalDirectory / new_filename)
+         
 
 
 #Running the Scripts:
 
-#checkboxes()
-'''
+checkboxes()
 completed = (len(years)*len(month_names))
 print(completed)
 for year in years:
@@ -111,21 +122,18 @@ for year in years:
             select_time(year, month)
             downloadDatabase()
             while True:
-                if checkFileDownloaded(r"C:\airlineData") == True:
+                if checkFileDownloaded(mainDirectory) == True:
                     break
                 else:
                     continue
-'''
-#file_num = len(glob.glob(r"C:\airlineData\*.zip"))
-#print(file_num)
-#if file_num == completed + 1:
-for file in os.listdir(mainDirectory):
+
+
+for count, file in enumerate(os.listdir(mainDirectory)):
     if file.endswith(".zip"):
         print("mainDirectory:", mainDirectory)
         print("file:", file)
-        count = 1
-        unzipFiles(mainDirectory, file, count)
-        count += 1
+        unzipFiles(mainDirectory, file)
+        changeFile(mainDirectory, file, count)
     else:
         continue
 

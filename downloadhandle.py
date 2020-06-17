@@ -6,7 +6,7 @@ from watchdog.events import FileSystemEventHandler
 
 
 class Watcher:
-    Directory_To_Watch = r"C:\airlineData"
+    Directory_To_Watch = r"C:\airlineData\unzipped"
 
     def __init__(self):
         self.observer = Observer()
