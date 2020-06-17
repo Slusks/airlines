@@ -5,6 +5,7 @@ import zipfile
 import os
 import time
 import glob
+import pandas as pd
 
 
 
@@ -77,24 +78,28 @@ def checkFileDownloaded(passedDirectory):
         print ("download in progress")
         time.sleep(5)
         continue #Not sure if this needs to be a pass or a continue
-    if len(glob.glob(directory+'/*.crdownload')) == 0:
+    if len(glob.glob(directory+'/*.crdownload')) == 0 and len(glob.glob(directory+'/*.zip')) >= 0:
         return True
 
 
-def unzipFiles(passedDirectory):
+def unzipFiles(passedDirectory, file, count):
     print("unzipping files")
-    directory = passedDirectory
-    print("directory", directory)
-    for filename in os.listdir(directory):
-        print("filename:", filename)
-        if filename.endswith(".zip"):
-            with zipfile.ZipFile(directory+'\\'+filename, "r") as zip_ref:
-                zip_ref.extractall(directory + '\\unzipped')
+    with zipfile.ZipFile(passedDirectory + file, "r") as zip_ref:
+        zip_ref.extractall(passedDirectory +'unzipped')
+        new_filename = file[:-8]+'.csv'
+        if new_filename in os.listdir(passedDirectory+'unzipped'):
+            os.rename(passedDirectory+'unzipped\\'+new_filename, passedDirectory+'unzipped\\'+"database_"+str(count)+'.csv')
+            return
+        else:
+            pass
+
+                
 
 
 #Running the Scripts:
 
 #checkboxes()
+'''
 completed = (len(years)*len(month_names))
 print(completed)
 for year in years:
@@ -110,10 +115,19 @@ for year in years:
                     break
                 else:
                     continue
+'''
 #file_num = len(glob.glob(r"C:\airlineData\*.zip"))
 #print(file_num)
 #if file_num == completed + 1:
-unzipFiles(r"C:\airlineData")
+for file in os.listdir(mainDirectory):
+    if file.endswith(".zip"):
+        print("mainDirectory:", mainDirectory)
+        print("file:", file)
+        count = 1
+        unzipFiles(mainDirectory, file, count)
+        count += 1
+    else:
+        continue
 
 
 
