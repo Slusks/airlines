@@ -8,12 +8,14 @@ import time
 import glob
 import pandas as pd
 import shutil
+import csv
+
 
 
 
 # Start Parameters
-years = [2016] #[2016, 2017, 2018, 2019, 2020]
-month_names = ["January","February","March"] #,"April","May","June","July","August","September","October","November","December"]
+years = [2016, 2017, 2018, 2019, 2020]
+month_names = ["January","February","March","April","May","June","July","August","September","October","November","December"]
 destinationFolder = Path(r"C:/Users/sam/Documents/My Tableau Repository/Datasources/Airlines/carrierReporting") #this will be used in later production
 
 
@@ -33,8 +35,9 @@ mainDirectory = Path(r"C:/airlineData/")
 ###
 
 
-#checking all the checkboxes
+#checking all the checkboxes for the data we want to download
 def checkboxes():
+    print("checkboxes")
     checkboxes = driver.find_elements_by_xpath("//input[@name='VarName']")
     count = 0
     print("checkboxes", checkboxes)
@@ -70,12 +73,14 @@ def select_time(year, month):
             option.click()# this is going to have to be sent an element of an iterable and also I hope click works here
             print("Month:", month)
 
+#Trigger the download after month/year selected
 def downloadDatabase():
         #Download selection
         print ("Downloading")
         submit_button = driver.find_element_by_xpath("//*[@id='content']/table[1]/tbody/tr/td[2]/table[3]/tbody/tr/td[2]/button[1]")
         submit_button.click()
 
+#Pause the download while a file is downloading
 def checkFileDownloaded(passedDirectory):
     print("checking downloads")
     time.sleep(10)
@@ -85,14 +90,13 @@ def checkFileDownloaded(passedDirectory):
     if len(list(passedDirectory.glob('*.crdownload'))) == 0 and len(list(passedDirectory.glob('*.zip'))) >= 0:
         return True
 
-
+#unzips the files and places them in the unzipped directory
 def unzipFiles(passedDirectory, file):
     print("unzipping files")
     with zipfile.ZipFile(passedDirectory/file, "r") as zip_ref:
         zip_ref.extractall(passedDirectory/'unzipped')
 
-##This function is supposed to rename the file because all the unzipped files will have the same name. Might want to switch this to a watchdog function.
-## Maybe I need an intermediate directory
+#moves and renames the unzipped file. This is necessary because all of the files unzip with the same name
 def changeFile(passedDirectory, filename, count):
     print("changing file")
     unzippedDirectory = passedDirectory/'unzipped'
@@ -105,17 +109,35 @@ def changeFile(passedDirectory, filename, count):
     print("new File name:", new_filename)
 
     shutil.move(unzippedDirectory / base_filename, finalDirectory / new_filename)
-         
+
+#moves and renames the files one more time, but by date
+def dateFile(passedDirectory):
+    for file in passedDirectory:
+        month_list = ["Samtember", "January","February","March","April","May","June","July","August","September","October","November","December"]
+        df = pd.read_csv(file, delimiter=',', encoding="utf-8-sig")
+        year = str(df['YEAR'][3])
+        month = month_list[int(df['MONTH'])]
+
+        newFilename = month + "_" + year + ".csv"
+        newDirectory = Path(r"C:/airlineData/dated")
+        print("passed Directory:", passedDirectory)
+        print("original Filename:", file)
+        print("newFilename:", newFilename)
+
+        shutil.move(passedDirectory / file, newDirectory / newFilename )
+        print("file moved")
+
+
 
 
 #Running the Scripts:
-
+print("starting")
 checkboxes()
 completed = (len(years)*len(month_names))
 print(completed)
 for year in years:
     for month in month_names:
-        if month == "April" and year == 2020:
+        if month == "June" and year == 2020:
             print ("downloaded all available databases")
             break
         else:
@@ -136,6 +158,12 @@ for count, file in enumerate(os.listdir(mainDirectory)):
         changeFile(mainDirectory, file, count)
     else:
         continue
+
+#moving the files again so they have better names
+rename_to_dated = Path(r"C:/airlineData/renamed")
+dateFile(rename_to_dated)
+
+
 
 
 
