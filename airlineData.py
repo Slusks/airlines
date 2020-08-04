@@ -98,33 +98,43 @@ def unzipFiles(passedDirectory, file):
 
 #moves and renames the unzipped file. This is necessary because all of the files unzip with the same name
 def changeFile(passedDirectory, filename, count):
+    print("count:", count)
     print("changing file")
     unzippedDirectory = passedDirectory/'unzipped'
     finalDirectory = passedDirectory/'renamed'
     if len(filename) == 32:
         base_filename = filename[:-4]+'.csv'
-    else:
+    elif len(filename)==36:
         base_filename = filename[:-8]+'.csv'
+    elif len(filename)== 37:
+        base_filename = filename[:-9]+'.csv'
+    else:
+        print("weird file name length:", len(filename))
     new_filename = "database_"+str(count)+'.csv'
     print("new File name:", new_filename)
+    print("unzippedDirectory:", unzippedDirectory)
+    print("finalDirectory:", finalDirectory)
 
     shutil.move(unzippedDirectory / base_filename, finalDirectory / new_filename)
 
 #moves and renames the files one more time, but by date
 def dateFile(passedDirectory):
-    for file in passedDirectory:
+    for file in enumerate(os.listdir(passedDirectory)):
+        print("file:", file)
         month_list = ["Samtember", "January","February","March","April","May","June","July","August","September","October","November","December"]
-        df = pd.read_csv(file, delimiter=',', encoding="utf-8-sig")
+        df = pd.read_csv(passedDirectory/file[1], delimiter=',', encoding="utf-8-sig")
         year = str(df['YEAR'][3])
-        month = month_list[int(df['MONTH'])]
+        numpymonth =  df['MONTH'][3]
+        pyMonth = numpymonth.item()
+        month = month_list[pyMonth]
 
         newFilename = month + "_" + year + ".csv"
         newDirectory = Path(r"C:/airlineData/dated")
         print("passed Directory:", passedDirectory)
-        print("original Filename:", file)
+        print("original Filename:", file[1])
         print("newFilename:", newFilename)
 
-        shutil.move(passedDirectory / file, newDirectory / newFilename )
+        shutil.move(passedDirectory / file[1], newDirectory / newFilename )
         print("file moved")
 
 
@@ -132,32 +142,32 @@ def dateFile(passedDirectory):
 
 #Running the Scripts:
 print("starting")
-checkboxes()
-completed = (len(years)*len(month_names))
-print(completed)
-for year in years:
-    for month in month_names:
-        if month == "June" and year == 2020:
-            print ("downloaded all available databases")
-            break
-        else:
-            select_time(year, month)
-            downloadDatabase()
-            while True:
-                if checkFileDownloaded(mainDirectory) == True:
-                    break
-                else:
-                    continue
+# Completed checkboxes() 
+# completed = (len(years)*len(month_names))
+# completed print(completed)
+# for year in years:
+#     for month in month_names:
+#         if month == "June" and year == 2020:
+#             print ("downloaded all available databases")
+#             break
+#         else:
+#             select_time(year, month)
+#             downloadDatabase()
+#             while True:
+#                 if checkFileDownloaded(mainDirectory) == True:
+#                     break
+#                 else:
+#                     continue
 
 
-for count, file in enumerate(os.listdir(mainDirectory)):
-    if file.endswith(".zip"):
-        print("mainDirectory:", mainDirectory)
-        print("file:", file)
-        unzipFiles(mainDirectory, file)
-        changeFile(mainDirectory, file, count)
-    else:
-        continue
+# for count, file in enumerate(os.listdir(mainDirectory)):
+#     if file.endswith(".zip"):
+#         print("mainDirectory:", mainDirectory)
+#         print("file:", file)
+#         unzipFiles(mainDirectory, file)
+#         changeFile(mainDirectory, file, count)
+#     else:
+#         continue
 
 #moving the files again so they have better names
 rename_to_dated = Path(r"C:/airlineData/renamed")
