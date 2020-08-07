@@ -137,7 +137,14 @@ def dateFile(passedDirectory):
         shutil.move(passedDirectory / file[1], newDirectory / newFilename )
         print("file moved")
 
+#combine all of the csv files
+def combineCSV(passedDirectory, masterFile):
+    dfList = [pd.read_csv(file, delimiter=',', encoding=encoding="utf-8-sig") for file in os.list(passedDirectory) if file.endswith('csv')]
+    finaldf = pd.concat(dfList, axis=1, join="inner")
+    
 
+
+combineCSV(mainDirectory/"renamed")
 
 
 #Running the Scripts:
