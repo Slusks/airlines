@@ -38,6 +38,19 @@ def combineCSVChunks(passedDirectory, outputFile):
             chunk.to_csv(outputFile, mode="a", index=False)
         first_one=False
 
+
+
+## Columns that are not strings:
+#10-13
+#17
+#19-22
+#26
+#28-34
+#36-45
+#47
+#49-60
+
+
     
     
 print("start")
